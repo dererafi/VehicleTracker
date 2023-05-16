@@ -10,7 +10,6 @@ public class Location
     {
         public int Compare(VehiclePosition c1, VehiclePosition c2)
         {
-            // Sort first by X, then by Y
             int result = c1.Longitude.CompareTo(c2.Longitude);
             if (result == 0)
                 result = c1.Latitude.CompareTo(c2.Latitude);
