@@ -11,10 +11,9 @@ public class Program
         Stopwatch stopwatch = Stopwatch.StartNew();
         List<VehiclePosition> vehiclePositions = DataFileParser.ReadDataFile();
 
-        var vehiclePositionsYSorted = vehiclePositions.OrderBy(y => y.Latitude).ToList();
-        var vehiclePositionsXSorted = vehiclePositionsYSorted.OrderBy(i => i.Longitude).ToList();
+        vehiclePositions.Sort(new Fxns.Location.CoordinateComparer());
 
-        var positions = await ProcessAsync(vehiclePositionsXSorted);
+        var positions = await ProcessAsync(vehiclePositions);
 
         stopwatch.Stop();
 

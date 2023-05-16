@@ -5,6 +5,18 @@ namespace VehicleTracker.Fxns;
 
 public class Location
 {
+    
+    public class CoordinateComparer : IComparer<VehiclePosition>
+    {
+        public int Compare(VehiclePosition c1, VehiclePosition c2)
+        {
+            // Sort first by X, then by Y
+            int result = c1.Longitude.CompareTo(c2.Longitude);
+            if (result == 0)
+                result = c1.Latitude.CompareTo(c2.Latitude);
+            return result;
+        }
+    }
 
     public static VehiclePosition BinarySearch(List<VehiclePosition> positions, Coord target)
     {
