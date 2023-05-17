@@ -9,6 +9,7 @@ public class VehiclePosition
     public string Registration;
     public float Latitude;
     public float Longitude;
+    public double Distance { get; set; }
     public DateTime RecordedTimeUTC;
 
     internal byte[] GetBytes()

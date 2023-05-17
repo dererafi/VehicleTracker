@@ -12,12 +12,14 @@ public class Program
         List<VehiclePosition> vehiclePositions = DataFileParser.ReadDataFile();
 
         vehiclePositions.Sort(new Fxns.Location.CoordinateComparer());
-
+       
         var positions = await ProcessAsync(vehiclePositions);
 
         stopwatch.Stop();
 
         long elapsedMilliseconds = stopwatch.ElapsedMilliseconds / 1000;
+        
+        positions.ForEach(x => Console.WriteLine($"Latitude {x.Latitude} : Longitude {x.Longitude}, Distance {x.Distance}") );
         
         Console.WriteLine(elapsedMilliseconds);
         
@@ -28,7 +30,7 @@ public class Program
     {
         var results = new List<VehiclePosition>();
         var lookupPositions = Fxns.Location.GetLookupPositions().ToList();
-        var lookupTasks = lookupPositions.Select(i => new TaskWrapper<VehiclePosition>(() => Task.Run(() => Fxns.Location.BinarySearch(vehiclePositionsXSorted, i))).InitAsync());
+        var lookupTasks = lookupPositions.Select(i => new TaskWrapper<VehiclePosition>(() => Task.Run(() => Fxns.Location.FindClosestCoordinate(vehiclePositionsXSorted, i))).InitAsync());
         results.AddRange(await Task.WhenAll(lookupTasks));
 
         return results;

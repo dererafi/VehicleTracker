@@ -6,6 +6,54 @@ namespace VehicleTracker.Fxns;
 public class Location
 {
     
+    public static VehiclePosition FindClosestCoordinate(List<VehiclePosition> coordinates, Coord queryPoint)
+    {
+        return FindClosestCoordinateRecursive(coordinates, queryPoint, 0, coordinates.Count - 1);
+    }
+
+    static VehiclePosition FindClosestCoordinateRecursive(List<VehiclePosition> coordinates, Coord queryPoint, int left, int right)
+    {
+        if (left == right)
+        {
+            return coordinates[left];
+        }
+
+        int mid = (left + right) / 2;
+        coordinates[mid].Distance = Distance(queryPoint, coordinates[mid]);
+        if (Math.Abs(queryPoint.Longitude - coordinates[mid].Longitude) < 0.000001 &&  (Math.Abs(queryPoint.Longitude - coordinates[mid].Longitude) < 0.000001))
+        {
+            return coordinates[mid];
+        }
+        else if (queryPoint.Longitude < coordinates[mid].Longitude || (Math.Abs(queryPoint.Longitude - coordinates[mid].Longitude) < 0.000001 && queryPoint.Latitude < coordinates[mid].Latitude))
+        {
+            if (mid > 0 && Distance(queryPoint, coordinates[mid - 1]) < Distance(queryPoint, coordinates[mid]))
+            {
+                return FindClosestCoordinateRecursive(coordinates, queryPoint, left, mid - 1);
+            }
+            else
+            {
+                return coordinates[mid];
+            }
+        }
+        else
+        {
+            if (mid < coordinates.Count - 1 && Distance(queryPoint, coordinates[mid + 1]) < Distance(queryPoint, coordinates[mid]))
+            {
+                return FindClosestCoordinateRecursive(coordinates, queryPoint, mid + 1, right);
+            }
+            else
+            {
+                return coordinates[mid];
+            }
+        }
+    }
+
+    static double Distance(Coord point1, VehiclePosition point2)
+    {
+        double dx = point1.Longitude - point2.Longitude;
+        double dy = point1.Latitude - point2.Latitude;
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
     public class CoordinateComparer : IComparer<VehiclePosition>
     {
         public int Compare(VehiclePosition c1, VehiclePosition c2)
@@ -16,82 +64,6 @@ public class Location
             return result;
         }
     }
-
-    public static VehiclePosition BinarySearch(List<VehiclePosition> positions, Coord target)
-    {
-        return BinarySearch(positions, target, 0, positions.Count - 1);
-    }
-
-    private static VehiclePosition BinarySearch(List<VehiclePosition> positions, Coord target, int left, int right, VehiclePosition currentCoord = null ,double previousDistance = 0)
-    {
-        var middle = (left + right) / 2;
-        
-        if (right < left)
-            return positions[middle];
-
-        double distance = DistanceBetween(target.Latitude, target.Longitude, positions[middle].Latitude, positions[middle].Longitude);
-        if(distance == 0)
-        {
-            return currentCoord;
-        } 
-        
-        if(distance < previousDistance)
-        {
-            return positions[middle];
-        }        
-        
-        if(positions[middle].Latitude < target.Latitude || (Math.Abs(positions[middle].Longitude - target.Longitude) < 0.000001 && positions[middle].Latitude < target.Latitude))
-        {
-            BinarySearch(positions, target, left, middle -1,  positions[middle], distance);
-        }
-    
-        return BinarySearch(positions, target, middle + 1, right,  positions[middle], distance);
-    }
-    
-    private static double DistanceBetween(
-        float latitude1,
-        float longitude1,
-        float latitude2,
-        float longitude2)
-    {
-        return new GeoCoordinate(latitude1, longitude1).GetDistanceTo(new GeoCoordinate(latitude2, longitude2));
-    }
-
-
-    private static (double lowerXBound, double upperXBound, double lowerYBound, double upperYBound) FindPointQuadrant(Coord queryPoint, float minLat, float maxLat, float minLong, float maxLong)
-    {
-        var latitudeSlices = DivideArea(minLat, maxLat, 8);
-        var longitudeSlices = DivideArea(minLong, maxLong, 8);
-
-        var rangeY = latitudeSlices.Single(x => x.lowerBound <= queryPoint.Latitude && x.upperBound >= queryPoint.Latitude);
-        var rangeX = longitudeSlices.Single(x => x.lowerBound <= queryPoint.Longitude && x.upperBound >= queryPoint.Longitude);
-
-        return (rangeX.lowerBound, rangeX.upperBound, rangeY.lowerBound, rangeY.upperBound);
-    }
-
-    private static List<(double lowerBound, double upperBound)> DivideArea(double lowerBound, double upperBound,
-        int numQuadrants)
-    {
-        List<(double lowerBound, double upperBound)> quadrants = new List<(double lowerBound, double upperBound)>();
-
-        if (numQuadrants == 1)
-        {
-            quadrants.Add((lowerBound, upperBound));
-        }
-        else
-        {
-            double midpoint = (lowerBound + upperBound) / 2;
-
-            List<(double lowerBound, double upperBound)> leftQuadrants = DivideArea(lowerBound, midpoint, numQuadrants / 2);
-            List<(double lowerBound, double upperBound)> rightQuadrants = DivideArea(midpoint, upperBound, numQuadrants / 2);
-
-            quadrants.AddRange(leftQuadrants);
-            quadrants.AddRange(rightQuadrants);
-        }
-
-        return quadrants;
-    }
-
     public static Coord[] GetLookupPositions()
     {
         Coord[] lookupPositions = new Coord[11];
